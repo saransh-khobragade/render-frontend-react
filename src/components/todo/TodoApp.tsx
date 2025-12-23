@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TodoForm } from './TodoForm';
 import { TodoList } from './TodoList';
-import type { Todo, CreateTodoData } from '@/types/todo';
+import type { Todo, CreateTodoData, UpdateTodoData } from '@/types/todo';
 import { todoService } from '@/services/todoService';
 import { toast } from 'sonner';
 
@@ -30,9 +30,19 @@ export function TodoApp(): ReactElement {
     void loadTodos();
   }, []);
 
-  const handleCreateTodo = async (data: CreateTodoData): Promise<void> => {
+  const handleCreateTodo = async (
+    data: CreateTodoData | UpdateTodoData,
+  ): Promise<void> => {
+    // Ensure we have required fields for creation
+    if (!data.title) {
+      throw new Error('Title is required');
+    }
+    const createData: CreateTodoData = {
+      title: data.title,
+      ...(data.description !== undefined && { description: data.description }),
+    };
     try {
-      await todoService.createTodo(data);
+      await todoService.createTodo(createData);
       toast.success('Todo created');
       setShowForm(false);
       await loadTodos();
